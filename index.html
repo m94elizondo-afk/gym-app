@@ -9,29 +9,127 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Gym Tracker</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f6f7f9;color:#111}
-    header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e7e7e7;padding:12px 14px}
-    h1{font-size:18px;margin:0}
-    main{padding:14px;max-width:760px;margin:0 auto}
-    .card{background:#fff;border:1px solid #e7e7e7;border-radius:14px;padding:12px;margin-bottom:12px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
-    .row > *{flex:1}
-    label{font-size:12px;color:#555;display:block;margin-bottom:6px}
-    input,select,textarea,button{font:inherit}
-    input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #d9d9d9;background:#fff}
-    textarea{min-height:70px;resize:vertical}
-    button{border:0;border-radius:12px;padding:10px 12px;background:#111;color:#fff;font-weight:600}
-    button.secondary{background:#e9eaee;color:#111}
-    button.danger{background:#c62828}
-    .muted{color:#666;font-size:12px}
-    .list{display:flex;flex-direction:column;gap:8px}
-    .item{border:1px solid #eee;border-radius:12px;padding:10px}
-    .item h3{margin:0 0 6px 0;font-size:15px}
-    .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef0f3;font-size:12px;margin-right:6px}
-    .divider{height:1px;background:#eee;margin:10px 0}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .small{font-size:12px}
-  </style>
+  :root{
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --text:#111;
+    --muted:#666;
+    --border:#e7e7e7;
+    --soft:#eef0f3;
+    --danger:#c62828;
+  }
+
+  body{
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  header{
+    position:sticky; top:0;
+    background:var(--card);
+    border-bottom:1px solid var(--border);
+    padding:12px 14px;
+    padding-top: calc(12px + env(safe-area-inset-top));
+    z-index:10;
+  }
+
+  h1{font-size:18px;margin:0}
+
+  main{
+    padding:14px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom));
+    max-width:760px;
+    margin:0 auto;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
+  }
+
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:flex-end;
+  }
+
+  /* IMPORTANTE: evita que en iPhone se aplaste o se superponga */
+  .row > *{
+    flex: 1 1 220px;   /* mínimo razonable */
+    min-width: 180px;
+  }
+
+  label{
+    font-size:12px;
+    color:#555;
+    display:block;
+    margin-bottom:6px;
+  }
+
+  input,select,textarea,button{font:inherit}
+
+  input,select,textarea{
+    width:100%;
+    padding:11px 12px;
+    border-radius:12px;
+    border:1px solid #d9d9d9;
+    background:#fff;
+  }
+
+  textarea{min-height:70px;resize:vertical}
+
+  .actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  button{
+    border:0;
+    border-radius:14px;
+    padding:12px 14px;
+    background:#111;
+    color:#fff;
+    font-weight:700;
+    flex: 1 1 220px;  /* botones en “grid” */
+  }
+
+  button.secondary{background:#e9eaee;color:#111;font-weight:700}
+  button.danger{background:var(--danger)}
+  .muted{color:var(--muted);font-size:12px}
+
+  .list{display:flex;flex-direction:column;gap:10px}
+  .item{border:1px solid #eee;border-radius:14px;padding:12px}
+  .item h3{margin:0 0 6px 0;font-size:15px}
+
+  .pill{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    background:var(--soft);
+    font-size:12px;
+    margin-right:6px;
+    white-space:nowrap;
+  }
+
+  .divider{height:1px;background:#eee;margin:12px 0}
+  .small{font-size:12px}
+
+  /* Mobile tuning */
+  @media (max-width: 430px){
+      input[type="date"]{width:100%} /* FIX iPhone */
+    button{flex: 1 1 100%} /* botones a ancho completo */
+    .row > *{flex: 1 1 100%; min-width: 0}
+  }
+</style>
+
 </head>
 <body>
 <header>
@@ -40,6 +138,9 @@
 
 <main>
   <div class="card" id="statusCard"></div>
+
+  <!-- PLAN: bloques + día 5 opcional -->
+  <div class="card" id="planCard"></div>
 
   <div class="card">
     <div class="row">
@@ -488,6 +589,139 @@
   initTemplates();
   workoutDate.value = todayISO();
   renderAll();
+
+  // ---------- PLAN BASADO EN CIENCIA (8 semanas + deload + bloque 2) ----------
+  const BLOCK1 = {
+    "Piernas A (Quad)": [
+      { name:"Hack squat / Prensa", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
+      { name:"Sentadilla búlgara", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
+      { name:"Extensión de cuádriceps", group:"Piernas", sets:3, reps:"12-15", rir:"1-2" },
+      { name:"Step-ups (opcional)", group:"Piernas", sets:2, reps:"10-12", rir:"2-3" },
+      { name:"Gemelos de pie", group:"Piernas", sets:4, reps:"8-12", rir:"1-2" }
+    ],
+    "Torso A": [
+      { name:"Press banca / Máquina", group:"Pecho", sets:3, reps:"6-10", rir:"2" },
+      { name:"Jalón al pecho", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
+      { name:"Remo cable", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
+      { name:"Press inclinado mancuernas", group:"Pecho", sets:2, reps:"8-12", rir:"2" },
+      { name:"Elevaciones laterales", group:"Hombros", sets:3, reps:"12-20", rir:"2" },
+      { name:"Tríceps cuerda", group:"Tríceps", sets:2, reps:"10-15", rir:"2" }
+    ],
+    "Piernas B (Posterior)": [
+      { name:"Peso muerto rumano", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
+      { name:"Curl femoral", group:"Piernas", sets:3, reps:"10-15", rir:"1-2" },
+      { name:"Hip thrust", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
+      { name:"Back extension", group:"Piernas", sets:2, reps:"10-15", rir:"2-3" },
+      { name:"Gemelos sentado", group:"Piernas", sets:4, reps:"10-15", rir:"1-2" }
+    ],
+    "Torso B": [
+      { name:"Remo máquina", group:"Espalda", sets:3, reps:"6-10", rir:"2" },
+      { name:"Press militar mancuernas", group:"Hombros", sets:3, reps:"6-10", rir:"2" },
+      { name:"Jalón neutro", group:"Espalda", sets:2, reps:"8-12", rir:"2" },
+      { name:"Face pulls", group:"Hombros", sets:2, reps:"12-20", rir:"2" },
+      { name:"Curl bíceps", group:"Bíceps", sets:2, reps:"8-12", rir:"2" },
+      { name:"Press cerrado / Fondos asistidos", group:"Tríceps", sets:2, reps:"8-12", rir:"2" }
+    ],
+    "Piernas Pump (opcional)": [
+      { name:"Prensa ligera (tempo controlado)", group:"Piernas", sets:3, reps:"12-20", rir:"3" },
+      { name:"Extensión de cuádriceps", group:"Piernas", sets:3, reps:"15-25", rir:"2-3" },
+      { name:"Curl femoral", group:"Piernas", sets:3, reps:"12-20", rir:"2-3" },
+      { name:"Gemelos (pump)", group:"Piernas", sets:4, reps:"12-20", rir:"2-3" },
+      { name:"Zona 2 (20-30 min)", group:"Cardio", sets:1, reps:"", rir:"" }
+    ]
+  };
+
+  const DELOAD = {
+    "Piernas A (Quad)": [
+      { name:"Hack squat / Prensa", group:"Piernas", sets:2, reps:"6-10", rir:"4" },
+      { name:"Extensión de cuádriceps", group:"Piernas", sets:2, reps:"12-15", rir:"4" },
+      { name:"Gemelos", group:"Piernas", sets:2, reps:"10-15", rir:"4" }
+    ],
+    "Torso A": [
+      { name:"Press banca / Máquina", group:"Pecho", sets:2, reps:"6-10", rir:"4" },
+      { name:"Jalón al pecho", group:"Espalda", sets:2, reps:"8-12", rir:"4" },
+      { name:"Elevaciones laterales", group:"Hombros", sets:2, reps:"12-20", rir:"4" }
+    ],
+    "Piernas B (Posterior)": [
+      { name:"Peso muerto rumano", group:"Piernas", sets:2, reps:"6-10", rir:"4" },
+      { name:"Curl femoral", group:"Piernas", sets:2, reps:"10-15", rir:"4" },
+      { name:"Gemelos", group:"Piernas", sets:2, reps:"10-15", rir:"4" }
+    ],
+    "Torso B": [
+      { name:"Remo máquina", group:"Espalda", sets:2, reps:"6-10", rir:"4" },
+      { name:"Press militar mancuernas", group:"Hombros", sets:2, reps:"6-10", rir:"4" },
+      { name:"Curl bíceps", group:"Bíceps", sets:1, reps:"8-12", rir:"4" }
+    ],
+    "Piernas Pump (opcional)": [
+      { name:"Zona 2 (20-30 min)", group:"Cardio", sets:1, reps:"", rir:"" },
+      { name:"Movilidad (10 min)", group:"Core", sets:1, reps:"", rir:"" }
+    ]
+  };
+
+  const BLOCK2 = {
+    "Piernas A (Quad)": [
+      { name:"Prensa (pies medios) / Hack", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
+      { name:"Split squat (máquina o mancuernas)", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
+      { name:"Extensión de cuádriceps (pausa arriba)", group:"Piernas", sets:3, reps:"12-15", rir:"1-2" },
+      { name:"Sissy / Step-ups (opcional)", group:"Piernas", sets:2, reps:"10-12", rir:"2-3" },
+      { name:"Gemelos de pie", group:"Piernas", sets:4, reps:"8-12", rir:"1-2" }
+    ],
+    "Torso A": [
+      { name:"Press inclinado (máquina)", group:"Pecho", sets:3, reps:"6-10", rir:"2" },
+      { name:"Jalón al pecho", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
+      { name:"Remo pecho apoyado", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
+      { name:"Cruces en polea", group:"Pecho", sets:2, reps:"10-15", rir:"2" },
+      { name:"Elevaciones laterales", group:"Hombros", sets:3, reps:"12-20", rir:"2" },
+      { name:"Tríceps cuerda", group:"Tríceps", sets:2, reps:"10-15", rir:"2" }
+    ],
+    "Piernas B (Posterior)": [
+      { name:"RDL con mancuernas / barra", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
+      { name:"Curl femoral sentado", group:"Piernas", sets:3, reps:"10-15", rir:"1-2" },
+      { name:"Hip thrust / Glute drive", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
+      { name:"Pull-through / Back extension", group:"Piernas", sets:2, reps:"10-15", rir:"2-3" },
+      { name:"Gemelos sentado", group:"Piernas", sets:4, reps:"10-15", rir:"1-2" }
+    ],
+    "Torso B": [
+      { name:"Remo máquina (agarre distinto)", group:"Espalda", sets:3, reps:"6-10", rir:"2" },
+      { name:"Press militar (máquina)", group:"Hombros", sets:3, reps:"6-10", rir:"2" },
+      { name:"Dominadas asistidas / Jalón neutro", group:"Espalda", sets:2, reps:"6-10", rir:"2" },
+      { name:"Face pulls", group:"Hombros", sets:2, reps:"12-20", rir:"2" },
+      { name:"Curl bíceps (inclinado)", group:"Bíceps", sets:2, reps:"8-12", rir:"2" },
+      { name:"Extensión tríceps overhead", group:"Tríceps", sets:2, reps:"8-12", rir:"2" }
+    ],
+    "Piernas Pump (opcional)": BLOCK1["Piernas Pump (opcional)"]
+  };
+
+  function getPlanByPhase(phase){
+    if (phase === "deload") return DELOAD;
+    if (phase === "block2") return BLOCK2;
+    return BLOCK1;
+  }
+
+  // v4 storage (migración)
+  const __OLD_LOAD = load;
+  const loadV4 = () => {
+    const raw = localStorage.getItem("gymtracker_pwa_v4");
+    if (raw) return JSON.parse(raw);
+    const v3 = localStorage.getItem("gymtracker_pwa_v3");
+    if (v3){
+      const db3 = JSON.parse(v3);
+      const db4 = { ...db3, settings: { ...(db3.settings||{}), phase: db3.settings?.phase ?? "block1", phaseStart: db3.settings?.phaseStart ?? (db3.settings?.blockStart ?? null), useDay5: !!db3.settings?.useDay5 } };
+      localStorage.setItem("gymtracker_pwa_v4", JSON.stringify(db4));
+      return db4;
+    }
+    const v2 = localStorage.getItem("gymtracker_pwa_v2");
+    if (v2){
+      const db2 = JSON.parse(v2);
+      const db4 = { ...db2, settings: { phase:"block1", phaseStart:null, useDay5:false } };
+      localStorage.setItem("gymtracker_pwa_v4", JSON.stringify(db4));
+      return db4;
+    }
+    return __OLD_LOAD();
+  };
+
+  // Nota: el resto de integración queda en el archivo v4 completo que te entrego aparte.
+
 </script>
 </body>
 </html>
