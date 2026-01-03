@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Gym Tracker</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f6f7f9;color:#111}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e7e7e7;padding:12px 14px}
+    h1{font-size:18px;margin:0}
+    main{padding:14px;max-width:760px;margin:0 auto}
+    .card{background:#fff;border:1px solid #e7e7e7;border-radius:14px;padding:12px;margin-bottom:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+    .row > *{flex:1}
+    label{font-size:12px;color:#555;display:block;margin-bottom:6px}
+    input,select,textarea,button{font:inherit}
+    input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #d9d9d9;background:#fff}
+    textarea{min-height:70px;resize:vertical}
+    button{border:0;border-radius:12px;padding:10px 12px;background:#111;color:#fff;font-weight:600}
+    button.secondary{background:#e9eaee;color:#111}
+    button.danger{background:#c62828}
+    .muted{color:#666;font-size:12px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{border:1px solid #eee;border-radius:12px;padding:10px}
+    .item h3{margin:0 0 6px 0;font-size:15px}
+    .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef0f3;font-size:12px;margin-right:6px}
+    .divider{height:1px;background:#eee;margin:10px 0}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .small{font-size:12px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🏋️ Gym Tracker (PWA offline)</h1>
+</header>
+
+<main>
+  <div class="card" id="statusCard"></div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Rutina (plantilla)</label>
+        <select id="routineSelect"></select>
+      </div>
+      <div>
+        <label>Nombre visible (opcional)</label>
+        <input id="routineName" placeholder="Ej: Piernas A (cuádriceps)" />
+      </div>
+      <div>
+        <label>Fecha</label>
+        <input id="workoutDate" type="date" />
+      </div>
+    </div>
+    <div style="height:10px"></div>
+    <div class="actions">
+      <button id="startBtn">Iniciar / Guardar sesión</button>
+      <button class="secondary" id="applyTemplateBtn">Aplicar plantilla</button>
+      <button class="secondary" id="newBtn">Nueva sesión</button>
+      <button class="secondary" id="exportBtn">Export CSV</button>
+      <button class="secondary" id="backupBtn">Backup/Reset</button>
+    </div>
+    <div class="muted" style="margin-top:8px">
+      Instalar en iPhone: Safari → Compartir → “Añadir a pantalla de inicio”.
+    </div>
+  </div>
+
+  <div class="card" id="workoutEditor" style="display:none">
+    <h2 style="margin:0 0 10px 0;font-size:16px">Sesión en curso</h2>
+
+    <div class="row">
+      <div>
+        <label>Ejercicio</label>
+        <input id="exName" placeholder="Ej: Prensa / RDL / Jalón..." list="exerciseList" />
+        <datalist id="exerciseList"></datalist>
+      </div>
+      <div>
+        <label>Grupo</label>
+        <select id="exGroup">
+          <option value="">—</option>
+          <option>Piernas</option><option>Pecho</option><option>Espalda</option>
+          <option>Hombros</option><option>Bíceps</option><option>Tríceps</option>
+          <option>Core</option><option>Cardio</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="height:10px"></div>
+    <button class="secondary" id="addExerciseBtn">Añadir ejercicio</button>
+
+    <div class="divider"></div>
+    <div id="exercisesArea"></div>
+
+    <div class="divider"></div>
+    <label>Notas de la sesión</label>
+    <textarea id="workoutNotes" placeholder="Sueño, molestias (rodilla), técnica, etc."></textarea>
+
+    <div style="height:10px"></div>
+    <div class="actions">
+      <button id="finishBtn">Finalizar sesión</button>
+      <button class="danger" id="deleteWorkoutBtn">Eliminar sesión</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px 0;font-size:16px">Historial</h2>
+    <div id="history" class="list"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px 0;font-size:16px">PRs (mejor peso × reps)</h2>
+    <div id="prs" class="list"></div>
+    <div class="muted">Sin 1RM: vamos por PRs seguros y progresión por reps/peso.</div>
+  </div>
+</main>
+
+<script>
+  // ---------- PWA ----------
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  }
+
+  // ---------- Templates (tu plan) ----------
+  const TEMPLATES = {
+    "Piernas A (Quad)": [
+      { name:"Hack squat / Prensa", group:"Piernas" },
+      { name:"Búlgaras / Zancadas", group:"Piernas" },
+      { name:"Extensión de cuádriceps", group:"Piernas" },
+      { name:"Step-ups (opcional)", group:"Piernas" },
+      { name:"Gemelos de pie", group:"Piernas" }
+    ],
+    "Torso A": [
+      { name:"Press banca / Máquina", group:"Pecho" },
+      { name:"Jalón al pecho", group:"Espalda" },
+      { name:"Remo cable", group:"Espalda" },
+      { name:"Press inclinado mancuernas", group:"Pecho" },
+      { name:"Elevaciones laterales", group:"Hombros" },
+      { name:"Tríceps cuerda", group:"Tríceps" }
+    ],
+    "Piernas B (Posterior)": [
+      { name:"Peso muerto rumano", group:"Piernas" },
+      { name:"Curl femoral", group:"Piernas" },
+      { name:"Hip thrust", group:"Piernas" },
+      { name:"Back extension", group:"Piernas" },
+      { name:"Gemelos sentado", group:"Piernas" }
+    ],
+    "Torso B": [
+      { name:"Remo máquina", group:"Espalda" },
+      { name:"Press militar mancuernas", group:"Hombros" },
+      { name:"Jalón neutro", group:"Espalda" },
+      { name:"Face pulls", group:"Hombros" },
+      { name:"Curl bíceps", group:"Bíceps" },
+      { name:"Press cerrado / Fondos asistidos", group:"Tríceps" }
+    ],
+    "Piernas Pump (opcional)": [
+      { name:"Prensa ligera", group:"Piernas" },
+      { name:"Extensión de cuádriceps", group:"Piernas" },
+      { name:"Curl femoral", group:"Piernas" },
+      { name:"Gemelos", group:"Piernas" },
+      { name:"Zona 2 (20-30 min)", group:"Cardio" }
+    ]
+  };
+
+  // ---------- Storage ----------
+  const KEY = "gymtracker_pwa_v2";
+  const load = () => JSON.parse(localStorage.getItem(KEY) || '{"workouts":[]}');
+  const save = (data) => localStorage.setItem(KEY, JSON.stringify(data));
+
+  let db = load();
+  let currentId = null;
+
+  const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
+  const todayISO = () => new Date().toISOString().slice(0,10);
+
+  function computePRs(workouts){
+    const best = new Map();
+    for (const w of workouts){
+      for (const ex of (w.exercises||[])){
+        for (const s of (ex.sets||[])){
+          const weight = Number(s.weight||0);
+          const reps = Number(s.reps||0);
+          if (!weight || !reps) continue;
+          const score = weight * reps;
+          const key = ex.name.trim().toLowerCase();
+          const prev = best.get(key);
+          if (!prev || score > prev.score){
+            best.set(key, { name: ex.name, score, weight, reps, date: w.date });
+          }
+        }
+      }
+    }
+    return Array.from(best.values()).sort((a,b)=>b.score-a.score);
+  }
+
+  // ---------- UI ----------
+  const statusCard = document.getElementById("statusCard");
+  const routineSelect = document.getElementById("routineSelect");
+  const routineName = document.getElementById("routineName");
+  const workoutDate = document.getElementById("workoutDate");
+  const workoutEditor = document.getElementById("workoutEditor");
+  const exName = document.getElementById("exName");
+  const exGroup = document.getElementById("exGroup");
+  const exercisesArea = document.getElementById("exercisesArea");
+  const workoutNotes = document.getElementById("workoutNotes");
+  const historyEl = document.getElementById("history");
+  const prsEl = document.getElementById("prs");
+  const exerciseList = document.getElementById("exerciseList");
+
+  function refreshExerciseDatalist(){
+    const set = new Set();
+    Object.values(TEMPLATES).flat().forEach(e=>set.add(e.name));
+    db.workouts.forEach(w => (w.exercises||[]).forEach(e=>set.add(e.name)));
+    exerciseList.innerHTML = Array.from(set).sort().map(n=>`<option value="${n}"></option>`).join("");
+  }
+
+  function renderStatus(){
+    const n = db.workouts.length;
+    const active = db.workouts.find(w=>w.id===currentId);
+    statusCard.innerHTML = `
+      <div class="row" style="align-items:center">
+        <div>
+          <div><span class="pill">Sesiones</span> <b>${n}</b></div>
+          <div class="muted">${active ? "Editando: " + (active.routine||"Sesión") + " ("+active.date+")" : "Sin sesión activa"}</div>
+        </div>
+        <div class="muted small">Offline · datos en tu iPhone/PC</div>
+      </div>
+    `;
+  }
+
+  function renderWorkoutEditor(){
+    const w = db.workouts.find(x=>x.id===currentId);
+    if (!w){ workoutEditor.style.display="none"; return; }
+    workoutEditor.style.display="block";
+
+    routineName.value = w.routine || "";
+    workoutDate.value = w.date || todayISO();
+    workoutNotes.value = w.notes || "";
+
+    exercisesArea.innerHTML = (w.exercises||[]).map((ex, idx) => {
+      const setsHtml = (ex.sets||[]).map((s, i)=>`
+        <div class="row">
+          <div style="min-width:70px;flex:0"><span class="pill">#${i+1}</span></div>
+          <div><label>Reps</label><input inputmode="numeric" value="${s.reps ?? ""}" data-ex="${idx}" data-set="${i}" data-k="reps"></div>
+          <div><label>Peso</label><input inputmode="decimal" value="${s.weight ?? ""}" data-ex="${idx}" data-set="${i}" data-k="weight"></div>
+          <div><label>RIR</label><input inputmode="decimal" value="${s.rir ?? ""}" data-ex="${idx}" data-set="${i}" data-k="rir"></div>
+          <div style="align-self:flex-end;min-width:60px;flex:0">
+            <button class="danger small" data-delset="1" data-ex="${idx}" data-set="${i}">X</button>
+          </div>
+        </div>
+      `).join("");
+
+      return `
+        <div class="item">
+          <div class="row" style="align-items:center">
+            <h3 style="flex:1">${ex.name}</h3>
+            <span class="pill">${ex.group||"—"}</span>
+            <button class="danger small" data-delex="1" data-ex="${idx}">Eliminar</button>
+          </div>
+          <div class="divider"></div>
+          ${setsHtml || '<div class="muted">Sin series aún</div>'}
+          <div style="height:8px"></div>
+          <button class="secondary small" data-addset="1" data-ex="${idx}">+ Serie</button>
+        </div>
+      `;
+    }).join("");
+
+    exercisesArea.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("input", ()=>{
+        const exi = Number(inp.dataset.ex);
+        const si = Number(inp.dataset.set);
+        const k = inp.dataset.k;
+        const w = db.workouts.find(x=>x.id===currentId);
+        w.exercises[exi].sets[si][k] = inp.value;
+        save(db);
+        renderPRs();
+      });
+    });
+
+    exercisesArea.querySelectorAll("button[data-addset]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const exi = Number(btn.dataset.ex);
+        const w = db.workouts.find(x=>x.id===currentId);
+        w.exercises[exi].sets = w.exercises[exi].sets || [];
+        w.exercises[exi].sets.push({ reps:"", weight:"", rir:"2" }); // default RIR 2
+        save(db);
+        renderWorkoutEditor();
+        renderPRs();
+      });
+    });
+
+    exercisesArea.querySelectorAll("button[data-delset]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const exi = Number(btn.dataset.ex);
+        const si = Number(btn.dataset.set);
+        const w = db.workouts.find(x=>x.id===currentId);
+        w.exercises[exi].sets.splice(si,1);
+        save(db);
+        renderWorkoutEditor();
+        renderPRs();
+      });
+    });
+
+    exercisesArea.querySelectorAll("button[data-delex]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const exi = Number(btn.dataset.ex);
+        const w = db.workouts.find(x=>x.id===currentId);
+        w.exercises.splice(exi,1);
+        save(db);
+        renderWorkoutEditor();
+        renderPRs();
+      });
+    });
+  }
+
+  function renderHistory(){
+    const workouts = [...db.workouts].sort((a,b)=> (b.date||"").localeCompare(a.date||""));
+    historyEl.innerHTML = workouts.length ? workouts.map(w=>`
+      <div class="item">
+        <div class="row" style="align-items:center">
+          <div style="flex:1">
+            <div><b>${w.routine || "Sin nombre"}</b></div>
+            <div class="muted">${w.date} · ${(w.exercises||[]).length} ejercicios</div>
+          </div>
+          <button class="secondary small" data-open="${w.id}">Abrir</button>
+        </div>
+      </div>
+    `).join("") : `<div class="muted">Aún no hay sesiones.</div>`;
+
+    historyEl.querySelectorAll("button[data-open]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        currentId = btn.dataset.open;
+        renderAll();
+        window.scrollTo({top:0,behavior:"smooth"});
+      });
+    });
+  }
+
+  function renderPRs(){
+    const prs = computePRs(db.workouts);
+    prsEl.innerHTML = prs.length ? prs.slice(0,30).map(p=>`
+      <div class="item">
+        <div><b>${p.name}</b></div>
+        <div class="muted">${p.weight} × ${p.reps} (score ${p.score.toFixed(1)}) · ${p.date}</div>
+      </div>
+    `).join("") : `<div class="muted">Registra series con peso y reps para ver PRs.</div>`;
+  }
+
+  function renderAll(){
+    renderStatus();
+    renderWorkoutEditor();
+    renderHistory();
+    renderPRs();
+    refreshExerciseDatalist();
+  }
+
+  // ---------- Init template selector ----------
+  function initTemplates(){
+    routineSelect.innerHTML = Object.keys(TEMPLATES).map(k=>`<option value="${k}">${k}</option>`).join("");
+  }
+
+  // ---------- Actions ----------
+  document.getElementById("startBtn").addEventListener("click", ()=>{
+    const templateName = routineSelect.value;
+    const r = (routineName.value.trim() || templateName || "Sesión");
+    const d = workoutDate.value || todayISO();
+
+    if (!currentId){
+      currentId = uid();
+      db.workouts.push({ id: currentId, routine: r, date: d, exercises: [], notes: "" });
+    } else {
+      const w = db.workouts.find(x=>x.id===currentId);
+      w.routine = r;
+      w.date = d;
+      w.notes = workoutNotes.value || "";
+    }
+    save(db);
+    renderAll();
+  });
+
+  document.getElementById("applyTemplateBtn").addEventListener("click", ()=>{
+    const w = db.workouts.find(x=>x.id===currentId);
+    if (!w) return alert("Primero inicia/guarda la sesión.");
+    const t = TEMPLATES[routineSelect.value];
+    if (!t) return;
+    // merge: agrega los que no estén ya
+    const existing = new Set((w.exercises||[]).map(e=>e.name.toLowerCase()));
+    t.forEach(e=>{
+      if (!existing.has(e.name.toLowerCase())){
+        w.exercises.push({ name:e.name, group:e.group, sets:[] });
+      }
+    });
+    save(db);
+    renderWorkoutEditor();
+    refreshExerciseDatalist();
+  });
+
+  document.getElementById("newBtn").addEventListener("click", ()=>{
+    currentId = null;
+    routineName.value = "";
+    workoutDate.value = todayISO();
+    workoutNotes.value = "";
+    renderAll();
+  });
+
+  document.getElementById("addExerciseBtn").addEventListener("click", ()=>{
+    const w = db.workouts.find(x=>x.id===currentId);
+    if (!w) return alert("Primero inicia/guarda la sesión.");
+    const name = exName.value.trim();
+    if (!name) return alert("Poné el nombre del ejercicio.");
+    const group = exGroup.value || "";
+    w.exercises.push({ name, group, sets: [] });
+    exName.value = "";
+    exGroup.value = "";
+    save(db);
+    renderWorkoutEditor();
+    refreshExerciseDatalist();
+  });
+
+  document.getElementById("finishBtn").addEventListener("click", ()=>{
+    const w = db.workouts.find(x=>x.id===currentId);
+    if (!w) return;
+    w.notes = workoutNotes.value || "";
+    save(db);
+    currentId = null;
+    renderAll();
+    alert("Sesión guardada ✅");
+  });
+
+  document.getElementById("deleteWorkoutBtn").addEventListener("click", ()=>{
+    if (!currentId) return;
+    if (!confirm("¿Eliminar esta sesión?")) return;
+    db.workouts = db.workouts.filter(w=>w.id!==currentId);
+    save(db);
+    currentId = null;
+    renderAll();
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", ()=>{
+    const rows = [];
+    rows.push(["date","routine","exercise","group","set","reps","weight","rir","notes"].join(","));
+    for (const w of db.workouts){
+      for (const ex of (w.exercises||[])){
+        (ex.sets||[]).forEach((s,i)=>{
+          rows.push([
+            w.date,
+            `"${(w.routine||"").replaceAll('"','""')}"`,
+            `"${(ex.name||"").replaceAll('"','""')}"`,
+            `"${(ex.group||"").replaceAll('"','""')}"`,
+            i+1, s.reps||"", s.weight||"", s.rir||"",
+            `"${(w.notes||"").replaceAll('"','""')}"`
+          ].join(","));
+        });
+      }
+    }
+    const blob = new Blob([rows.join("\n")], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gymtracker_export.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById("backupBtn").addEventListener("click", ()=>{
+    const json = JSON.stringify(db, null, 2);
+    const blob = new Blob([json], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gymtracker_backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+
+    const ok = confirm("Backup descargado. ¿Quieres resetear (borrar) todo ahora?");
+    if (ok){
+      db = {workouts:[]};
+      save(db);
+      currentId = null;
+      renderAll();
+    }
+  });
+
+  // init
+  initTemplates();
+  workoutDate.value = todayISO();
+  renderAll();
+</script>
+</body>
+</html>
