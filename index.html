@@ -8,166 +8,113 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Gym Tracker</title>
+
   <style>
-  :root{
-    --bg:#f6f7f9;
-    --card:#ffffff;
-    --text:#111;
-    --muted:#666;
-    --border:#e7e7e7;
-    --soft:#eef0f3;
-    --danger:#c62828;
-  }
+    :root{
+      --bg:#f6f7f9;
+      --card:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --border:#e7e7e7;
+      --soft:#eef0f3;
+      --danger:#c62828;
+      --ok:#1b5e20;
+      --accent:#111;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text)}
+    header{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border);padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));z-index:10}
+    h1{font-size:18px;margin:0}
+    main{padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom));max-width:860px;margin:0 auto}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;margin-bottom:12px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+    .row>*{flex:1 1 220px;min-width:180px}
+    label{font-size:12px;color:#555;display:block;margin-bottom:6px}
+    input,select,textarea,button,summary{font:inherit}
+    input,select,textarea{width:100%;padding:11px 12px;border-radius:12px;border:1px solid #d9d9d9;background:#fff}
+    input[type="date"]{appearance:none;-webkit-appearance:none;display:block}
+    textarea{min-height:70px;resize:vertical}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:0;border-radius:14px;padding:12px 14px;background:var(--accent);color:#fff;font-weight:800;flex:1 1 220px;cursor:pointer}
+    button.secondary{background:#e9eaee;color:#111;font-weight:700}
+    button.danger{background:var(--danger)}
+    button.ok{background:var(--ok)}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .muted{color:var(--muted);font-size:12px}
+    .small{font-size:12px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{border:1px solid #eee;border-radius:14px;padding:12px}
+    .item h3{margin:0 0 6px 0;font-size:15px}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;background:var(--soft);font-size:12px;margin-right:6px;white-space:nowrap}
+    .pill.ok{background:#e8f5e9}
+    .pill.warn{background:#fff3e0}
+    .pill.bad{background:#ffebee}
+    .divider{height:1px;background:#eee;margin:12px 0}
+    .targets{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
+    .kpiRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .kpi{border:1px solid #eee;border-radius:14px;padding:10px;background:#fff;flex:1 1 180px;min-width:160px}
+    .kpi .v{font-weight:900;font-size:16px}
+    .kpi .t{color:#555;font-size:12px}
 
-  body{
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    margin:0;
-    background:var(--bg);
-    color:var(--text);
-  }
+    details{border:1px solid #eee;border-radius:14px;padding:8px 10px;background:#fff}
+    summary{cursor:pointer;font-weight:800;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:6px 4px}
+    summary::-webkit-details-marker{display:none}
+    .summaryHint{font-weight:600;color:#555;font-size:12px}
+    .configInner{padding:8px 2px 2px 2px}
 
-  header{
-    position:sticky; top:0;
-    background:var(--card);
-    border-bottom:1px solid var(--border);
-    padding:12px 14px;
-    padding-top: calc(12px + env(safe-area-inset-top));
-    z-index:10;
-  }
-
-  h1{font-size:18px;margin:0}
-
-  main{
-    padding:14px;
-    padding-bottom: calc(14px + env(safe-area-inset-bottom));
-    max-width:760px;
-    margin:0 auto;
-  }
-
-  .card{
-    background:var(--card);
-    border:1px solid var(--border);
-    border-radius:16px;
-    padding:12px;
-    margin-bottom:12px;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.02);
-  }
-
-  .row{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:flex-end;
-  }
-
-  /* IMPORTANTE: evita que en iPhone se aplaste o se superponga */
-  .row > *{
-    flex: 1 1 220px;   /* mínimo razonable */
-    min-width: 180px;
-  }
-
-  label{
-    font-size:12px;
-    color:#555;
-    display:block;
-    margin-bottom:6px;
-  }
-
-  input,select,textarea,button{font:inherit}
-
-  input,select,textarea{
-    width:100%;
-    padding:11px 12px;
-    border-radius:12px;
-    border:1px solid #d9d9d9;
-    background:#fff;
-  }
-
-  textarea{min-height:70px;resize:vertical}
-
-  .actions{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-  }
-
-  button{
-    border:0;
-    border-radius:14px;
-    padding:12px 14px;
-    background:#111;
-    color:#fff;
-    font-weight:700;
-    flex: 1 1 220px;  /* botones en “grid” */
-  }
-
-  button.secondary{background:#e9eaee;color:#111;font-weight:700}
-  button.danger{background:var(--danger)}
-  .muted{color:var(--muted);font-size:12px}
-
-  .list{display:flex;flex-direction:column;gap:10px}
-  .item{border:1px solid #eee;border-radius:14px;padding:12px}
-  .item h3{margin:0 0 6px 0;font-size:15px}
-
-  .pill{
-    display:inline-block;
-    padding:4px 10px;
-    border-radius:999px;
-    background:var(--soft);
-    font-size:12px;
-    margin-right:6px;
-    white-space:nowrap;
-  }
-
-  .divider{height:1px;background:#eee;margin:12px 0}
-  .small{font-size:12px}
-
-  /* Mobile tuning */
-  @media (max-width: 430px){
-      input[type="date"]{width:100%} /* FIX iPhone */
-    button{flex: 1 1 100%} /* botones a ancho completo */
-    .row > *{flex: 1 1 100%; min-width: 0}
-  }
-</style>
-
+    @media (max-width:430px){
+      button{flex:1 1 100%}
+      .row>*{flex:1 1 100%;min-width:0}
+      input[type="date"]{width:100%}
+    }
+  </style>
 </head>
+
 <body>
-<header>
-  <h1>🏋️ Gym Tracker (PWA offline)</h1>
-</header>
+<header><h1>🏋️ Gym Tracker (PWA offline)</h1></header>
 
 <main>
   <div class="card" id="statusCard"></div>
-
-  <!-- PLAN: bloques + día 5 opcional -->
   <div class="card" id="planCard"></div>
 
   <div class="card">
-    <div class="row">
-      <div>
-        <label>Rutina (plantilla)</label>
-        <select id="routineSelect"></select>
+    <div class="row" style="align-items:center">
+      <div style="flex:2">
+        <div class="muted">Acción principal</div>
+        <div style="font-weight:900;font-size:16px;margin-top:2px" id="primaryTitle">—</div>
+        <div class="muted" style="margin-top:6px" id="primarySubtitle">—</div>
       </div>
-      <div>
-        <label>Nombre visible (opcional)</label>
-        <input id="routineName" placeholder="Ej: Piernas A (cuádriceps)" />
-      </div>
-      <div>
-        <label>Fecha</label>
-        <input id="workoutDate" type="date" />
+      <div style="flex:1">
+        <button id="primaryBtn">—</button>
+        <div class="muted" style="margin-top:8px">Abrí desde el icono (Safari → Compartir → “Añadir a pantalla de inicio”).</div>
       </div>
     </div>
-    <div style="height:10px"></div>
-    <div class="actions">
-      <button id="startBtn">Iniciar / Guardar sesión</button>
-      <button class="secondary" id="applyTemplateBtn">Aplicar plantilla</button>
-      <button class="secondary" id="newBtn">Nueva sesión</button>
-      <button class="secondary" id="exportBtn">Export CSV</button>
-      <button class="secondary" id="backupBtn">Backup/Reset</button>
-    </div>
-    <div class="muted" style="margin-top:8px">
-      Instalar en iPhone: Safari → Compartir → “Añadir a pantalla de inicio”.
-    </div>
+
+    <div class="divider"></div>
+
+    <details id="configDetails">
+      <summary>
+        <span>⚙️ Configuración / Export / Backup</span>
+        <span class="summaryHint">tocar para abrir</span>
+      </summary>
+
+      <div class="configInner">
+        <div class="row">
+          <div><label>Rutina (plantilla)</label><select id="routineSelect"></select></div>
+          <div><label>Nombre visible (opcional)</label><input id="routineName" placeholder="Ej: Piernas A (cuádriceps)" /></div>
+          <div><label>Fecha (por defecto hoy)</label><input id="workoutDate" type="date" /></div>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="actions">
+          <button class="secondary" id="applyTemplateBtn">Aplicar plantilla</button>
+          <button class="secondary" id="newBtn">Nueva sesión</button>
+          <button class="secondary" id="exportBtn">Export CSV</button>
+          <button class="secondary" id="backupBtn">Backup/Reset</button>
+        </div>
+      </div>
+    </details>
   </div>
 
   <div class="card" id="workoutEditor" style="display:none">
@@ -202,7 +149,7 @@
 
     <div style="height:10px"></div>
     <div class="actions">
-      <button id="finishBtn">Finalizar sesión</button>
+      <button class="ok" id="finishBtn">Guardar sesión ✅</button>
       <button class="danger" id="deleteWorkoutBtn">Eliminar sesión</button>
     </div>
   </div>
@@ -215,67 +162,59 @@
   <div class="card">
     <h2 style="margin:0 0 10px 0;font-size:16px">PRs (mejor peso × reps)</h2>
     <div id="prs" class="list"></div>
-    <div class="muted">Sin 1RM: vamos por PRs seguros y progresión por reps/peso.</div>
+    <div class="muted">Sin 1RM: progresión segura por reps/peso manteniendo <b>RIR 1–3</b>.</div>
   </div>
 </main>
 
 <script>
-  // ---------- PWA ----------
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(()=>{});
   }
 
-  // ---------- Templates (tu plan) ----------
-  const TEMPLATES = {
-    "Piernas A (Quad)": [
-      { name:"Hack squat / Prensa", group:"Piernas" },
-      { name:"Búlgaras / Zancadas", group:"Piernas" },
-      { name:"Extensión de cuádriceps", group:"Piernas" },
-      { name:"Step-ups (opcional)", group:"Piernas" },
-      { name:"Gemelos de pie", group:"Piernas" }
-    ],
-    "Torso A": [
-      { name:"Press banca / Máquina", group:"Pecho" },
-      { name:"Jalón al pecho", group:"Espalda" },
-      { name:"Remo cable", group:"Espalda" },
-      { name:"Press inclinado mancuernas", group:"Pecho" },
-      { name:"Elevaciones laterales", group:"Hombros" },
-      { name:"Tríceps cuerda", group:"Tríceps" }
-    ],
-    "Piernas B (Posterior)": [
-      { name:"Peso muerto rumano", group:"Piernas" },
-      { name:"Curl femoral", group:"Piernas" },
-      { name:"Hip thrust", group:"Piernas" },
-      { name:"Back extension", group:"Piernas" },
-      { name:"Gemelos sentado", group:"Piernas" }
-    ],
-    "Torso B": [
-      { name:"Remo máquina", group:"Espalda" },
-      { name:"Press militar mancuernas", group:"Hombros" },
-      { name:"Jalón neutro", group:"Espalda" },
-      { name:"Face pulls", group:"Hombros" },
-      { name:"Curl bíceps", group:"Bíceps" },
-      { name:"Press cerrado / Fondos asistidos", group:"Tríceps" }
-    ],
-    "Piernas Pump (opcional)": [
-      { name:"Prensa ligera", group:"Piernas" },
-      { name:"Extensión de cuádriceps", group:"Piernas" },
-      { name:"Curl femoral", group:"Piernas" },
-      { name:"Gemelos", group:"Piernas" },
-      { name:"Zona 2 (20-30 min)", group:"Cardio" }
-    ]
+  const BLOCK1 = {"Piernas A (Quad)":[{"name":"Hack squat / Prensa","group":"Piernas","sets":4,"reps":"6-10","rir":"2"},{"name":"Sentadilla búlgara","group":"Piernas","sets":3,"reps":"8-12","rir":"2"},{"name":"Extensión de cuádriceps","group":"Piernas","sets":3,"reps":"12-15","rir":"1-2"},{"name":"Step-ups (opcional)","group":"Piernas","sets":2,"reps":"10-12","rir":"2-3"},{"name":"Gemelos de pie","group":"Piernas","sets":4,"reps":"8-12","rir":"1-2"}],"Torso A":[{"name":"Press banca / Máquina","group":"Pecho","sets":3,"reps":"6-10","rir":"2"},{"name":"Jalón al pecho","group":"Espalda","sets":3,"reps":"8-12","rir":"2"},{"name":"Remo cable","group":"Espalda","sets":3,"reps":"8-12","rir":"2"},{"name":"Press inclinado mancuernas","group":"Pecho","sets":2,"reps":"8-12","rir":"2"},{"name":"Elevaciones laterales","group":"Hombros","sets":3,"reps":"12-20","rir":"2"},{"name":"Tríceps cuerda","group":"Tríceps","sets":2,"reps":"10-15","rir":"2"}],"Piernas B (Posterior)":[{"name":"Peso muerto rumano","group":"Piernas","sets":4,"reps":"6-10","rir":"2"},{"name":"Curl femoral","group":"Piernas","sets":3,"reps":"10-15","rir":"1-2"},{"name":"Hip thrust","group":"Piernas","sets":3,"reps":"8-12","rir":"2"},{"name":"Back extension","group":"Piernas","sets":2,"reps":"10-15","rir":"2-3"},{"name":"Gemelos sentado","group":"Piernas","sets":4,"reps":"10-15","rir":"1-2"}],"Torso B":[{"name":"Remo máquina","group":"Espalda","sets":3,"reps":"6-10","rir":"2"},{"name":"Press militar mancuernas","group":"Hombros","sets":3,"reps":"6-10","rir":"2"},{"name":"Jalón neutro","group":"Espalda","sets":2,"reps":"8-12","rir":"2"},{"name":"Face pulls","group":"Hombros","sets":2,"reps":"12-20","rir":"2"},{"name":"Curl bíceps","group":"Bíceps","sets":2,"reps":"8-12","rir":"2"},{"name":"Press cerrado / Fondos asistidos","group":"Tríceps","sets":2,"reps":"8-12","rir":"2"}],"Piernas Pump (opcional)":[{"name":"Prensa ligera (tempo controlado)","group":"Piernas","sets":3,"reps":"12-20","rir":"3"},{"name":"Extensión de cuádriceps","group":"Piernas","sets":3,"reps":"15-25","rir":"2-3"},{"name":"Curl femoral","group":"Piernas","sets":3,"reps":"12-20","rir":"2-3"},{"name":"Gemelos (pump)","group":"Piernas","sets":4,"reps":"12-20","rir":"2-3"},{"name":"Zona 2 (20-30 min)","group":"Cardio","sets":1,"reps":"","rir":""}]};
+  const DELOAD = {"Piernas A (Quad)":[{"name":"Hack squat / Prensa","group":"Piernas","sets":2,"reps":"6-10","rir":"4"},{"name":"Extensión de cuádriceps","group":"Piernas","sets":2,"reps":"12-15","rir":"4"},{"name":"Gemelos","group":"Piernas","sets":2,"reps":"10-15","rir":"4"}],"Torso A":[{"name":"Press banca / Máquina","group":"Pecho","sets":2,"reps":"6-10","rir":"4"},{"name":"Jalón al pecho","group":"Espalda","sets":2,"reps":"8-12","rir":"4"},{"name":"Elevaciones laterales","group":"Hombros","sets":2,"reps":"12-20","rir":"4"}],"Piernas B (Posterior)":[{"name":"Peso muerto rumano","group":"Piernas","sets":2,"reps":"6-10","rir":"4"},{"name":"Curl femoral","group":"Piernas","sets":2,"reps":"10-15","rir":"4"},{"name":"Gemelos","group":"Piernas","sets":2,"reps":"10-15","rir":"4"}],"Torso B":[{"name":"Remo máquina","group":"Espalda","sets":2,"reps":"6-10","rir":"4"},{"name":"Press militar mancuernas","group":"Hombros","sets":2,"reps":"6-10","rir":"4"},{"name":"Curl bíceps","group":"Bíceps","sets":1,"reps":"8-12","rir":"4"}],"Piernas Pump (opcional)":[{"name":"Zona 2 (20-30 min)","group":"Cardio","sets":1,"reps":"","rir":""},{"name":"Movilidad (10 min)","group":"Core","sets":1,"reps":"","rir":""}]};
+  const BLOCK2 = {"Piernas A (Quad)":[{"name":"Prensa (pies medios) / Hack","group":"Piernas","sets":4,"reps":"6-10","rir":"2"},{"name":"Split squat (máquina o mancuernas)","group":"Piernas","sets":3,"reps":"8-12","rir":"2"},{"name":"Extensión de cuádriceps (pausa arriba)","group":"Piernas","sets":3,"reps":"12-15","rir":"1-2"},{"name":"Sissy / Step-ups (opcional)","group":"Piernas","sets":2,"reps":"10-12","rir":"2-3"},{"name":"Gemelos de pie","group":"Piernas","sets":4,"reps":"8-12","rir":"1-2"}],"Torso A":[{"name":"Press inclinado (máquina)","group":"Pecho","sets":3,"reps":"6-10","rir":"2"},{"name":"Jalón al pecho","group":"Espalda","sets":3,"reps":"8-12","rir":"2"},{"name":"Remo pecho apoyado","group":"Espalda","sets":3,"reps":"8-12","rir":"2"},{"name":"Cruces en polea","group":"Pecho","sets":2,"reps":"10-15","rir":"2"},{"name":"Elevaciones laterales","group":"Hombros","sets":3,"reps":"12-20","rir":"2"},{"name":"Tríceps cuerda","group":"Tríceps","sets":2,"reps":"10-15","rir":"2"}],"Piernas B (Posterior)":[{"name":"RDL con mancuernas / barra","group":"Piernas","sets":4,"reps":"6-10","rir":"2"},{"name":"Curl femoral sentado","group":"Piernas","sets":3,"reps":"10-15","rir":"1-2"},{"name":"Hip thrust / Glute drive","group":"Piernas","sets":3,"reps":"8-12","rir":"2"},{"name":"Pull-through / Back extension","group":"Piernas","sets":2,"reps":"10-15","rir":"2-3"},{"name":"Gemelos sentado","group":"Piernas","sets":4,"reps":"10-15","rir":"1-2"}],"Torso B":[{"name":"Remo máquina (agarre distinto)","group":"Espalda","sets":3,"reps":"6-10","rir":"2"},{"name":"Press militar (máquina)","group":"Hombros","sets":3,"reps":"6-10","rir":"2"},{"name":"Dominadas asistidas / Jalón neutro","group":"Espalda","sets":2,"reps":"6-10","rir":"2"},{"name":"Face pulls","group":"Hombros","sets":2,"reps":"12-20","rir":"2"},{"name":"Curl bíceps (inclinado)","group":"Bíceps","sets":2,"reps":"8-12","rir":"2"},{"name":"Extensión tríceps overhead","group":"Tríceps","sets":2,"reps":"8-12","rir":"2"}],"Piernas Pump (opcional)":BLOCK1["Piernas Pump (opcional)"]};
+
+  function getPlanByPhase(phase){ if (phase==="deload") return DELOAD; if (phase==="block2") return BLOCK2; return BLOCK1; }
+
+  const KEY = "gymtracker_pwa_v5";
+  const load = () => {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+    const v4 = localStorage.getItem("gymtracker_pwa_v4");
+    if (v4){ const db4 = JSON.parse(v4); localStorage.setItem(KEY, JSON.stringify(db4)); return db4; }
+    const v3 = localStorage.getItem("gymtracker_pwa_v3");
+    if (v3){ const db3 = JSON.parse(v3); localStorage.setItem(KEY, JSON.stringify(db3)); return db3; }
+    const v2 = localStorage.getItem("gymtracker_pwa_v2");
+    if (v2){ const db2 = JSON.parse(v2); localStorage.setItem(KEY, JSON.stringify(db2)); return db2; }
+    return { workouts: [], settings: { phase:"block1", phaseStart:null, useDay5:false, block:1 } };
   };
-
-  // ---------- Storage ----------
-  const KEY = "gymtracker_pwa_v2";
-  const load = () => JSON.parse(localStorage.getItem(KEY) || '{"workouts":[]}');
   const save = (data) => localStorage.setItem(KEY, JSON.stringify(data));
-
   let db = load();
   let currentId = null;
-
   const uid = () => Math.random().toString(16).slice(2) + Date.now().toString(16);
   const todayISO = () => new Date().toISOString().slice(0,10);
+
+  function ensureSettings(){
+    db.settings = db.settings || { phase:"block1", phaseStart:null, useDay5:false, block:1 };
+    if (!db.settings.phase) db.settings.phase = "block1";
+    if (typeof db.settings.useDay5 !== "boolean") db.settings.useDay5 = false;
+    if (!db.settings.block) db.settings.block = 1;
+  }
+  function daysBetween(aISO, bDate){ const a = new Date(aISO + "T00:00:00"); const b = new Date(bDate); return Math.floor((b - a) / (1000*60*60*24)); }
+  function phaseWeek(){ ensureSettings(); if (!db.settings.phaseStart) return null; const diffDays = daysBetween(db.settings.phaseStart, new Date()); return Math.floor(diffDays/7) + 1; }
+  function startPhase(phase){ ensureSettings(); db.settings.phase = phase; db.settings.phaseStart = todayISO(); save(db); renderAll(); }
+
+  function planDayNameForToday(){
+    ensureSettings();
+    const day = new Date().getDay();
+    if (day === 1) return "Piernas A (Quad)";
+    if (day === 2) return "Torso A";
+    if (day === 4) return "Piernas B (Posterior)";
+    if (day === 5) return "Torso B";
+    if (day === 6 && db.settings.useDay5) return "Piernas Pump (opcional)";
+    return null;
+  }
 
   function computePRs(workouts){
     const best = new Map();
@@ -286,7 +225,7 @@
           const reps = Number(s.reps||0);
           if (!weight || !reps) continue;
           const score = weight * reps;
-          const key = ex.name.trim().toLowerCase();
+          const key = (ex.name||"").trim().toLowerCase();
           const prev = best.get(key);
           if (!prev || score > prev.score){
             best.set(key, { name: ex.name, score, weight, reps, date: w.date });
@@ -297,8 +236,16 @@
     return Array.from(best.values()).sort((a,b)=>b.score-a.score);
   }
 
-  // ---------- UI ----------
+  function estimateWeeklyLegVolume(phase){
+    const P = getPlanByPhase(phase);
+    const quadA = (P["Piernas A (Quad)"]||[]).reduce((a,e)=>a + (e.group==="Piernas" ? e.sets : 0),0);
+    const postB = (P["Piernas B (Posterior)"]||[]).reduce((a,e)=>a + (e.group==="Piernas" ? e.sets : 0),0);
+    const pump = db.settings.useDay5 ? (P["Piernas Pump (opcional)"]||[]).reduce((a,e)=>a + (e.group==="Piernas" ? e.sets : 0),0) : 0;
+    return {quadA,postB,pump,total:quadA+postB+pump};
+  }
+
   const statusCard = document.getElementById("statusCard");
+  const planCard = document.getElementById("planCard");
   const routineSelect = document.getElementById("routineSelect");
   const routineName = document.getElementById("routineName");
   const workoutDate = document.getElementById("workoutDate");
@@ -310,10 +257,14 @@
   const historyEl = document.getElementById("history");
   const prsEl = document.getElementById("prs");
   const exerciseList = document.getElementById("exerciseList");
+  const primaryBtn = document.getElementById("primaryBtn");
+  const primaryTitle = document.getElementById("primaryTitle");
+  const primarySubtitle = document.getElementById("primarySubtitle");
+  const configDetails = document.getElementById("configDetails");
 
   function refreshExerciseDatalist(){
     const set = new Set();
-    Object.values(TEMPLATES).flat().forEach(e=>set.add(e.name));
+    [BLOCK1,BLOCK2,DELOAD].forEach(P=>Object.values(P).flat().forEach(e=>set.add(e.name)));
     db.workouts.forEach(w => (w.exercises||[]).forEach(e=>set.add(e.name)));
     exerciseList.innerHTML = Array.from(set).sort().map(n=>`<option value="${n}"></option>`).join("");
   }
@@ -327,9 +278,165 @@
           <div><span class="pill">Sesiones</span> <b>${n}</b></div>
           <div class="muted">${active ? "Editando: " + (active.routine||"Sesión") + " ("+active.date+")" : "Sin sesión activa"}</div>
         </div>
-        <div class="muted small">Offline · datos en tu iPhone/PC</div>
+        <div class="muted small">Offline · datos solo en tu iPhone/PC</div>
       </div>
     `;
+  }
+
+  function renderPlanCard(){
+    ensureSettings();
+    const wk = phaseWeek();
+    const phase = db.settings.phase;
+    const inPhase = wk !== null;
+
+    const phaseLabel = phase==="block1" ? "Bloque 1 (8 semanas)" : (phase==="deload" ? "Deload (1 semana)" : "Bloque 2 (8 semanas)");
+    const badge = phase==="deload" ? "warn" : "ok";
+    const wkLimit = phase==="deload" ? 1 : 8;
+
+    const wkShown = inPhase ? Math.min(wk, wkLimit) : null;
+    const finished = inPhase && wk > wkLimit;
+
+    const todayName = planDayNameForToday();
+    const P = getPlanByPhase(phase);
+    const todayPlan = todayName ? (P[todayName]||[]) : [];
+    const vol = estimateWeeklyLegVolume(phase);
+
+    const statusText = !inPhase
+      ? `<span class="pill">Plan</span> <b>Sin iniciar</b> · ${phaseLabel}`
+      : `<span class="pill">Plan</span> <span class="pill ${badge}">${phaseLabel}</span> · Semana <b>${wkShown}</b> / ${wkLimit} ${finished ? `<span class="pill bad">Terminado</span>`:""}`;
+
+    const dayText = todayName ? `<b>Hoy toca:</b> ${todayName}` : `<b>Hoy:</b> descanso / libre`;
+    const hint = phase==="deload"
+      ? `Deload = bajar fatiga: menos series, RIR alto. Volvés más fuerte al Bloque 2.`
+      : `Regla de progreso: subí reps dentro del rango; si tocás el tope en todas las series, subí peso la próxima.`;
+
+    const planLines = todayPlan.length
+      ? `<div class="divider"></div>` + todayPlan.map(e=>`
+          <div class="targets">
+            <span class="pill">${e.group}</span>
+            <div style="flex:1"><b>${e.name}</b></div>
+            ${e.sets?`<span class="pill">${e.sets}×</span>`:""}
+            ${e.reps?`<span class="pill">${e.reps}</span>`:""}
+            ${e.rir?`<span class="pill">RIR ${e.rir}</span>`:""}
+          </div>
+        `).join("")
+      : "";
+
+    planCard.innerHTML = `
+      <div class="row" style="align-items:center">
+        <div style="flex:2">
+          <div>${statusText}</div>
+          <div class="muted" style="margin-top:6px">${dayText}</div>
+          <div class="muted" style="margin-top:6px">Día 5 opcional (sábado): <b>${db.settings.useDay5 ? "activado":"desactivado"}</b></div>
+        </div>
+        <div class="actions" style="flex:1;justify-content:flex-end">
+          ${!inPhase ? `<button class="ok" id="startBlock1Btn">Iniciar Bloque 1</button>`:""}
+          <button class="secondary" id="toggleDay5Btn">${db.settings.useDay5 ? "Desactivar día 5":"Activar día 5"}</button>
+          <button id="startTodayBtn" ${todayName ? "" : "disabled"}>${todayName ? "Iniciar con plan":"Hoy sin plan"}</button>
+          ${finished && phase==="block1" ? `<button class="secondary" id="startDeloadBtn">Iniciar Deload</button>`:""}
+          ${finished && phase==="deload" ? `<button class="ok" id="startBlock2Btn">Iniciar Bloque 2</button>`:""}
+        </div>
+      </div>
+
+      <div class="kpiRow">
+        <div class="kpi"><div class="v">${vol.total}</div><div class="t">Series pierna/semana (estim.)</div></div>
+        <div class="kpi"><div class="v">${vol.quadA}</div><div class="t">Piernas A (quad)</div></div>
+        <div class="kpi"><div class="v">${vol.postB}</div><div class="t">Piernas B (posterior)</div></div>
+        <div class="kpi"><div class="v">${vol.pump}</div><div class="t">Día 5 (pump)</div></div>
+      </div>
+
+      <div class="muted" style="margin-top:10px">${hint}</div>
+      ${planLines}
+    `;
+
+    const startBlock1Btn = document.getElementById("startBlock1Btn");
+    if (startBlock1Btn) startBlock1Btn.addEventListener("click", ()=>startPhase("block1"));
+
+    const startDeloadBtn = document.getElementById("startDeloadBtn");
+    if (startDeloadBtn) startDeloadBtn.addEventListener("click", ()=>startPhase("deload"));
+
+    const startBlock2Btn = document.getElementById("startBlock2Btn");
+    if (startBlock2Btn) startBlock2Btn.addEventListener("click", ()=>startPhase("block2"));
+
+    document.getElementById("toggleDay5Btn").addEventListener("click", ()=>{
+      db.settings.useDay5 = !db.settings.useDay5;
+      save(db);
+      renderAll();
+    });
+
+    document.getElementById("startTodayBtn").addEventListener("click", ()=>{
+      if (!todayName) return;
+      startWorkoutFromPlan(todayName);
+    });
+  }
+
+  function allTemplateKeys(){ return ["Piernas A (Quad)","Torso A","Piernas B (Posterior)","Torso B","Piernas Pump (opcional)"]; }
+  function initTemplates(){ routineSelect.innerHTML = allTemplateKeys().map(k=>`<option value="${k}">${k}</option>`).join(""); }
+
+  function startWorkoutFromPlan(dayName){
+    ensureSettings();
+    const plan = getPlanByPhase(db.settings.phase);
+    const dayPlan = plan[dayName] || [];
+
+    currentId = uid();
+    const d = workoutDate.value || todayISO();
+    const session = { id: currentId, routine: dayName, date: d, exercises: [], notes: "", phase: db.settings.phase };
+
+    dayPlan.forEach(e=>{
+      const ex = { name:e.name, group:e.group, sets:[], target:{ sets:e.sets||0, reps:e.reps||"", rir:e.rir||"" } };
+      const nSets = Number(e.sets||0);
+      for (let i=0;i<nSets;i++){
+        ex.sets.push({ reps:"", weight:"", rir:(e.rir ? String(e.rir).split("-")[0] : "2") });
+      }
+      session.exercises.push(ex);
+    });
+
+    db.workouts.push(session);
+    routineSelect.value = dayName;
+    routineName.value = dayName;
+    workoutDate.value = d;
+
+    save(db);
+    configDetails.open = false;
+    renderAll();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function renderPrimaryCTA(){
+    const w = db.workouts.find(x=>x.id===currentId);
+    const todayName = planDayNameForToday();
+    const todayText = todayName ? `Hoy toca: ${todayName}` : "Hoy: libre / descanso";
+
+    if (!w){
+      primaryTitle.textContent = todayText;
+      primarySubtitle.textContent = todayName ? "Tocá para iniciar tu sesión con el plan del día." : "Si querés, elegí una plantilla en Configuración y creá una sesión manual.";
+      primaryBtn.textContent = todayName ? "▶️ Iniciar con plan" : "➕ Crear sesión";
+      primaryBtn.onclick = () => {
+        if (todayName) startWorkoutFromPlan(todayName);
+        else {
+          const templateName = routineSelect.value || "Sesión";
+          currentId = uid();
+          const d = workoutDate.value || todayISO();
+          const name = (routineName.value.trim() || templateName);
+          db.workouts.push({ id: currentId, routine: name, date: d, exercises: [], notes: "", phase: db.settings?.phase || "" });
+          save(db);
+          renderAll();
+          window.scrollTo({top:0,behavior:"smooth"});
+        }
+      };
+    } else {
+      primaryTitle.textContent = w.routine || "Sesión en curso";
+      primarySubtitle.textContent = `${w.date} · ${(w.exercises||[]).length} ejercicios · tocá para guardar`;
+      primaryBtn.textContent = "💾 Guardar sesión";
+      primaryBtn.onclick = () => {
+        w.routine = (routineName.value.trim() || w.routine || "Sesión");
+        w.date = workoutDate.value || w.date || todayISO();
+        w.notes = workoutNotes.value || "";
+        save(db);
+        alert("Sesión guardada ✅");
+        renderAll();
+      };
+    }
   }
 
   function renderWorkoutEditor(){
@@ -342,6 +449,9 @@
     workoutNotes.value = w.notes || "";
 
     exercisesArea.innerHTML = (w.exercises||[]).map((ex, idx) => {
+      const tgt = ex.target || null;
+      const tgtLine = tgt ? `<div class="muted">Objetivo: <b>${tgt.sets||""}×</b> ${tgt.reps?`<b>${tgt.reps}</b>`:""} ${tgt.rir?`· <b>RIR ${tgt.rir}</b>`:""}</div>` : "";
+
       const setsHtml = (ex.sets||[]).map((s, i)=>`
         <div class="row">
           <div style="min-width:70px;flex:0"><span class="pill">#${i+1}</span></div>
@@ -357,14 +467,20 @@
       return `
         <div class="item">
           <div class="row" style="align-items:center">
-            <h3 style="flex:1">${ex.name}</h3>
+            <div style="flex:1">
+              <h3 style="margin:0">${ex.name}</h3>
+              ${tgtLine}
+            </div>
             <span class="pill">${ex.group||"—"}</span>
             <button class="danger small" data-delex="1" data-ex="${idx}">Eliminar</button>
           </div>
           <div class="divider"></div>
           ${setsHtml || '<div class="muted">Sin series aún</div>'}
           <div style="height:8px"></div>
-          <button class="secondary small" data-addset="1" data-ex="${idx}">+ Serie</button>
+          <div class="actions">
+            <button class="secondary small" data-addset="1" data-ex="${idx}">+ Serie</button>
+            ${tgt && tgt.sets ? `<button class="secondary small" data-fillsets="1" data-ex="${idx}">Rellenar sets objetivo</button>` : ``}
+          </div>
         </div>
       `;
     }).join("");
@@ -378,6 +494,7 @@
         w.exercises[exi].sets[si][k] = inp.value;
         save(db);
         renderPRs();
+        renderPrimaryCTA();
       });
     });
 
@@ -386,10 +503,28 @@
         const exi = Number(btn.dataset.ex);
         const w = db.workouts.find(x=>x.id===currentId);
         w.exercises[exi].sets = w.exercises[exi].sets || [];
-        w.exercises[exi].sets.push({ reps:"", weight:"", rir:"2" }); // default RIR 2
+        w.exercises[exi].sets.push({ reps:"", weight:"", rir:"2" });
         save(db);
         renderWorkoutEditor();
         renderPRs();
+        renderPrimaryCTA();
+      });
+    });
+
+    exercisesArea.querySelectorAll("button[data-fillsets]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const exi = Number(btn.dataset.ex);
+        const w = db.workouts.find(x=>x.id===currentId);
+        const ex = w.exercises[exi];
+        const tgt = ex.target || {};
+        const nSets = Number(tgt.sets||0);
+        if (!nSets) return;
+        ex.sets = [];
+        for (let i=0;i<nSets;i++){
+          ex.sets.push({ reps:"", weight:"", rir:(tgt.rir ? String(tgt.rir).split("-")[0] : "2") });
+        }
+        save(db);
+        renderWorkoutEditor();
       });
     });
 
@@ -402,6 +537,7 @@
         save(db);
         renderWorkoutEditor();
         renderPRs();
+        renderPrimaryCTA();
       });
     });
 
@@ -413,6 +549,7 @@
         save(db);
         renderWorkoutEditor();
         renderPRs();
+        renderPrimaryCTA();
       });
     });
   }
@@ -423,7 +560,7 @@
       <div class="item">
         <div class="row" style="align-items:center">
           <div style="flex:1">
-            <div><b>${w.routine || "Sin nombre"}</b></div>
+            <div><b>${w.routine || "Sin nombre"}</b> ${w.phase ? `<span class="pill">${w.phase}</span>`:""}</div>
             <div class="muted">${w.date} · ${(w.exercises||[]).length} ejercicios</div>
           </div>
           <button class="secondary small" data-open="${w.id}">Abrir</button>
@@ -442,7 +579,7 @@
 
   function renderPRs(){
     const prs = computePRs(db.workouts);
-    prsEl.innerHTML = prs.length ? prs.slice(0,30).map(p=>`
+    prsEl.innerHTML = prs.length ? prs.slice(0,40).map(p=>`
       <div class="item">
         <div><b>${p.name}</b></div>
         <div class="muted">${p.weight} × ${p.reps} (score ${p.score.toFixed(1)}) · ${p.date}</div>
@@ -452,51 +589,32 @@
 
   function renderAll(){
     renderStatus();
+    renderPlanCard();
     renderWorkoutEditor();
     renderHistory();
     renderPRs();
     refreshExerciseDatalist();
+    renderPrimaryCTA();
   }
-
-  // ---------- Init template selector ----------
-  function initTemplates(){
-    routineSelect.innerHTML = Object.keys(TEMPLATES).map(k=>`<option value="${k}">${k}</option>`).join("");
-  }
-
-  // ---------- Actions ----------
-  document.getElementById("startBtn").addEventListener("click", ()=>{
-    const templateName = routineSelect.value;
-    const r = (routineName.value.trim() || templateName || "Sesión");
-    const d = workoutDate.value || todayISO();
-
-    if (!currentId){
-      currentId = uid();
-      db.workouts.push({ id: currentId, routine: r, date: d, exercises: [], notes: "" });
-    } else {
-      const w = db.workouts.find(x=>x.id===currentId);
-      w.routine = r;
-      w.date = d;
-      w.notes = workoutNotes.value || "";
-    }
-    save(db);
-    renderAll();
-  });
 
   document.getElementById("applyTemplateBtn").addEventListener("click", ()=>{
     const w = db.workouts.find(x=>x.id===currentId);
-    if (!w) return alert("Primero inicia/guarda la sesión.");
-    const t = TEMPLATES[routineSelect.value];
+    if (!w) return alert("Primero inicia una sesión (botón principal o plan).");
+    ensureSettings();
+    const P = getPlanByPhase(db.settings.phase);
+    const t = P[routineSelect.value];
     if (!t) return;
-    // merge: agrega los que no estén ya
-    const existing = new Set((w.exercises||[]).map(e=>e.name.toLowerCase()));
+
+    const existing = new Set((w.exercises||[]).map(e=>(e.name||"").toLowerCase()));
     t.forEach(e=>{
       if (!existing.has(e.name.toLowerCase())){
-        w.exercises.push({ name:e.name, group:e.group, sets:[] });
+        w.exercises.push({ name:e.name, group:e.group, sets:[], target:{ sets:e.sets||0, reps:e.reps||"", rir:e.rir||"" } });
       }
     });
     save(db);
     renderWorkoutEditor();
     refreshExerciseDatalist();
+    renderPrimaryCTA();
   });
 
   document.getElementById("newBtn").addEventListener("click", ()=>{
@@ -509,7 +627,7 @@
 
   document.getElementById("addExerciseBtn").addEventListener("click", ()=>{
     const w = db.workouts.find(x=>x.id===currentId);
-    if (!w) return alert("Primero inicia/guarda la sesión.");
+    if (!w) return alert("Primero inicia una sesión (botón principal o plan).");
     const name = exName.value.trim();
     if (!name) return alert("Poné el nombre del ejercicio.");
     const group = exGroup.value || "";
@@ -519,12 +637,15 @@
     save(db);
     renderWorkoutEditor();
     refreshExerciseDatalist();
+    renderPrimaryCTA();
   });
 
   document.getElementById("finishBtn").addEventListener("click", ()=>{
     const w = db.workouts.find(x=>x.id===currentId);
     if (!w) return;
     w.notes = workoutNotes.value || "";
+    w.routine = (routineName.value.trim() || w.routine || "Sesión");
+    w.date = workoutDate.value || w.date || todayISO();
     save(db);
     currentId = null;
     renderAll();
@@ -542,17 +663,20 @@
 
   document.getElementById("exportBtn").addEventListener("click", ()=>{
     const rows = [];
-    rows.push(["date","routine","exercise","group","set","reps","weight","rir","notes"].join(","));
+    rows.push(["date","routine","phase","exercise","group","set","reps","weight","rir","target_sets","target_reps","target_rir","notes"].join(","));
     for (const w of db.workouts){
       for (const ex of (w.exercises||[])){
+        const tgt = ex.target || {};
         (ex.sets||[]).forEach((s,i)=>{
           rows.push([
             w.date,
             `"${(w.routine||"").replaceAll('"','""')}"`,
+            `"${(w.phase||"").replaceAll('"','""')}"`,
             `"${(ex.name||"").replaceAll('"','""')}"`,
             `"${(ex.group||"").replaceAll('"','""')}"`,
             i+1, s.reps||"", s.weight||"", s.rir||"",
-            `"${(w.notes||"").replaceAll('"','""')}"`
+            tgt.sets||"", `"${(tgt.reps||"").replaceAll('"','""')}"`, `"${(tgt.rir||"").replaceAll('"','""')}"`,
+            `"${(w.notes||"").replaceAll('"','""')}"`,
           ].join(","));
         });
       }
@@ -578,150 +702,16 @@
 
     const ok = confirm("Backup descargado. ¿Quieres resetear (borrar) todo ahora?");
     if (ok){
-      db = {workouts:[]};
+      db = {workouts:[], settings:{ phase:"block1", phaseStart:null, useDay5:false, block:1 }};
       save(db);
       currentId = null;
       renderAll();
     }
   });
 
-  // init
   initTemplates();
   workoutDate.value = todayISO();
   renderAll();
-
-  // ---------- PLAN BASADO EN CIENCIA (8 semanas + deload + bloque 2) ----------
-  const BLOCK1 = {
-    "Piernas A (Quad)": [
-      { name:"Hack squat / Prensa", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
-      { name:"Sentadilla búlgara", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
-      { name:"Extensión de cuádriceps", group:"Piernas", sets:3, reps:"12-15", rir:"1-2" },
-      { name:"Step-ups (opcional)", group:"Piernas", sets:2, reps:"10-12", rir:"2-3" },
-      { name:"Gemelos de pie", group:"Piernas", sets:4, reps:"8-12", rir:"1-2" }
-    ],
-    "Torso A": [
-      { name:"Press banca / Máquina", group:"Pecho", sets:3, reps:"6-10", rir:"2" },
-      { name:"Jalón al pecho", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
-      { name:"Remo cable", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
-      { name:"Press inclinado mancuernas", group:"Pecho", sets:2, reps:"8-12", rir:"2" },
-      { name:"Elevaciones laterales", group:"Hombros", sets:3, reps:"12-20", rir:"2" },
-      { name:"Tríceps cuerda", group:"Tríceps", sets:2, reps:"10-15", rir:"2" }
-    ],
-    "Piernas B (Posterior)": [
-      { name:"Peso muerto rumano", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
-      { name:"Curl femoral", group:"Piernas", sets:3, reps:"10-15", rir:"1-2" },
-      { name:"Hip thrust", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
-      { name:"Back extension", group:"Piernas", sets:2, reps:"10-15", rir:"2-3" },
-      { name:"Gemelos sentado", group:"Piernas", sets:4, reps:"10-15", rir:"1-2" }
-    ],
-    "Torso B": [
-      { name:"Remo máquina", group:"Espalda", sets:3, reps:"6-10", rir:"2" },
-      { name:"Press militar mancuernas", group:"Hombros", sets:3, reps:"6-10", rir:"2" },
-      { name:"Jalón neutro", group:"Espalda", sets:2, reps:"8-12", rir:"2" },
-      { name:"Face pulls", group:"Hombros", sets:2, reps:"12-20", rir:"2" },
-      { name:"Curl bíceps", group:"Bíceps", sets:2, reps:"8-12", rir:"2" },
-      { name:"Press cerrado / Fondos asistidos", group:"Tríceps", sets:2, reps:"8-12", rir:"2" }
-    ],
-    "Piernas Pump (opcional)": [
-      { name:"Prensa ligera (tempo controlado)", group:"Piernas", sets:3, reps:"12-20", rir:"3" },
-      { name:"Extensión de cuádriceps", group:"Piernas", sets:3, reps:"15-25", rir:"2-3" },
-      { name:"Curl femoral", group:"Piernas", sets:3, reps:"12-20", rir:"2-3" },
-      { name:"Gemelos (pump)", group:"Piernas", sets:4, reps:"12-20", rir:"2-3" },
-      { name:"Zona 2 (20-30 min)", group:"Cardio", sets:1, reps:"", rir:"" }
-    ]
-  };
-
-  const DELOAD = {
-    "Piernas A (Quad)": [
-      { name:"Hack squat / Prensa", group:"Piernas", sets:2, reps:"6-10", rir:"4" },
-      { name:"Extensión de cuádriceps", group:"Piernas", sets:2, reps:"12-15", rir:"4" },
-      { name:"Gemelos", group:"Piernas", sets:2, reps:"10-15", rir:"4" }
-    ],
-    "Torso A": [
-      { name:"Press banca / Máquina", group:"Pecho", sets:2, reps:"6-10", rir:"4" },
-      { name:"Jalón al pecho", group:"Espalda", sets:2, reps:"8-12", rir:"4" },
-      { name:"Elevaciones laterales", group:"Hombros", sets:2, reps:"12-20", rir:"4" }
-    ],
-    "Piernas B (Posterior)": [
-      { name:"Peso muerto rumano", group:"Piernas", sets:2, reps:"6-10", rir:"4" },
-      { name:"Curl femoral", group:"Piernas", sets:2, reps:"10-15", rir:"4" },
-      { name:"Gemelos", group:"Piernas", sets:2, reps:"10-15", rir:"4" }
-    ],
-    "Torso B": [
-      { name:"Remo máquina", group:"Espalda", sets:2, reps:"6-10", rir:"4" },
-      { name:"Press militar mancuernas", group:"Hombros", sets:2, reps:"6-10", rir:"4" },
-      { name:"Curl bíceps", group:"Bíceps", sets:1, reps:"8-12", rir:"4" }
-    ],
-    "Piernas Pump (opcional)": [
-      { name:"Zona 2 (20-30 min)", group:"Cardio", sets:1, reps:"", rir:"" },
-      { name:"Movilidad (10 min)", group:"Core", sets:1, reps:"", rir:"" }
-    ]
-  };
-
-  const BLOCK2 = {
-    "Piernas A (Quad)": [
-      { name:"Prensa (pies medios) / Hack", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
-      { name:"Split squat (máquina o mancuernas)", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
-      { name:"Extensión de cuádriceps (pausa arriba)", group:"Piernas", sets:3, reps:"12-15", rir:"1-2" },
-      { name:"Sissy / Step-ups (opcional)", group:"Piernas", sets:2, reps:"10-12", rir:"2-3" },
-      { name:"Gemelos de pie", group:"Piernas", sets:4, reps:"8-12", rir:"1-2" }
-    ],
-    "Torso A": [
-      { name:"Press inclinado (máquina)", group:"Pecho", sets:3, reps:"6-10", rir:"2" },
-      { name:"Jalón al pecho", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
-      { name:"Remo pecho apoyado", group:"Espalda", sets:3, reps:"8-12", rir:"2" },
-      { name:"Cruces en polea", group:"Pecho", sets:2, reps:"10-15", rir:"2" },
-      { name:"Elevaciones laterales", group:"Hombros", sets:3, reps:"12-20", rir:"2" },
-      { name:"Tríceps cuerda", group:"Tríceps", sets:2, reps:"10-15", rir:"2" }
-    ],
-    "Piernas B (Posterior)": [
-      { name:"RDL con mancuernas / barra", group:"Piernas", sets:4, reps:"6-10", rir:"2" },
-      { name:"Curl femoral sentado", group:"Piernas", sets:3, reps:"10-15", rir:"1-2" },
-      { name:"Hip thrust / Glute drive", group:"Piernas", sets:3, reps:"8-12", rir:"2" },
-      { name:"Pull-through / Back extension", group:"Piernas", sets:2, reps:"10-15", rir:"2-3" },
-      { name:"Gemelos sentado", group:"Piernas", sets:4, reps:"10-15", rir:"1-2" }
-    ],
-    "Torso B": [
-      { name:"Remo máquina (agarre distinto)", group:"Espalda", sets:3, reps:"6-10", rir:"2" },
-      { name:"Press militar (máquina)", group:"Hombros", sets:3, reps:"6-10", rir:"2" },
-      { name:"Dominadas asistidas / Jalón neutro", group:"Espalda", sets:2, reps:"6-10", rir:"2" },
-      { name:"Face pulls", group:"Hombros", sets:2, reps:"12-20", rir:"2" },
-      { name:"Curl bíceps (inclinado)", group:"Bíceps", sets:2, reps:"8-12", rir:"2" },
-      { name:"Extensión tríceps overhead", group:"Tríceps", sets:2, reps:"8-12", rir:"2" }
-    ],
-    "Piernas Pump (opcional)": BLOCK1["Piernas Pump (opcional)"]
-  };
-
-  function getPlanByPhase(phase){
-    if (phase === "deload") return DELOAD;
-    if (phase === "block2") return BLOCK2;
-    return BLOCK1;
-  }
-
-  // v4 storage (migración)
-  const __OLD_LOAD = load;
-  const loadV4 = () => {
-    const raw = localStorage.getItem("gymtracker_pwa_v4");
-    if (raw) return JSON.parse(raw);
-    const v3 = localStorage.getItem("gymtracker_pwa_v3");
-    if (v3){
-      const db3 = JSON.parse(v3);
-      const db4 = { ...db3, settings: { ...(db3.settings||{}), phase: db3.settings?.phase ?? "block1", phaseStart: db3.settings?.phaseStart ?? (db3.settings?.blockStart ?? null), useDay5: !!db3.settings?.useDay5 } };
-      localStorage.setItem("gymtracker_pwa_v4", JSON.stringify(db4));
-      return db4;
-    }
-    const v2 = localStorage.getItem("gymtracker_pwa_v2");
-    if (v2){
-      const db2 = JSON.parse(v2);
-      const db4 = { ...db2, settings: { phase:"block1", phaseStart:null, useDay5:false } };
-      localStorage.setItem("gymtracker_pwa_v4", JSON.stringify(db4));
-      return db4;
-    }
-    return __OLD_LOAD();
-  };
-
-  // Nota: el resto de integración queda en el archivo v4 completo que te entrego aparte.
-
 </script>
 </body>
 </html>
